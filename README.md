@@ -1,6 +1,6 @@
-# Golang_microservices_using_RabbitMQ
+# Golang microservices using RabbitMQ
 
-feat: producer & consumer microservices using separate config.yaml: take1
+feat: producer & consumer microservices using separate config.yaml: take 3
 
 Credits to github.com/OtusGolang/webinars_practical_part/29-queues
 
