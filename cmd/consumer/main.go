@@ -40,6 +40,9 @@ func main() {
 	flag.Parse()
 
 	cfg, err := LoadConfig(configFile)
+	if err != nil {
+		log.Fatalf("%s", err)
+	}
 
 	// Build AMQP URI from config
 	amqpURI := fmt.Sprintf("amqp://%s:%s@%s:%s/",
@@ -73,7 +76,7 @@ func main() {
 	log.Println("Consumer running...")
 
 	if cfg.Lifetime > 0 {
-		log.Printf("running for %s", cfg.Lifetime)
+		log.Printf("running for %d", cfg.Lifetime)
 		time.Sleep(time.Duration(cfg.Lifetime) * time.Second)
 		log.Println("lifetime expired, shutting down...")
 	} else {
