@@ -6,9 +6,6 @@ import (
 	"log"
 )
 
-// Пример использования из командной строки:
-// go run .\... -sync -key none
-
 var (
 	routingKey = flag.String("key", "test-key", "AMQP routing key")
 	body       = flag.String("body", "foobar", "Body of message")

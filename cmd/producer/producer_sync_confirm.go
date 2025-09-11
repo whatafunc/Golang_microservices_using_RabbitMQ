@@ -8,7 +8,7 @@ import (
 
 	"log/slog"
 
-	"github.com/streadway/amqp"
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 // publish_sync_confirm — пример публикации сообщения с синхронными подтверждениями.
