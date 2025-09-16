@@ -4,13 +4,13 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
+
+	"github.com/whatafunc/Golang_microservices_using_RabbitMQ/internal/rabbit"
 )
 
-var (
-	routingKey = flag.String("key", "test-key", "AMQP routing key")
-	body       = flag.String("body", "foobar", "Body of message")
-	reliable   = flag.Bool("reliable", true, "Wait for the publisher confirmation before exiting")
-)
 var configFile string
 
 func init() {
@@ -31,16 +31,20 @@ func main() {
 		cfg.Host,
 		cfg.Port,
 	)
-	if cfg.Sync {
-		err := publish_sync_confirm(amqpURI, cfg.Exchange, cfg.ExchangeType, *routingKey, *body, *reliable)
-		if err != nil {
-			log.Fatalf("%s", err)
-		}
-	} else {
-		err := publish(amqpURI, cfg.Exchange, cfg.ExchangeType, *routingKey, *body, *reliable)
-		if err != nil {
-			log.Fatalf("%s", err)
-		}
+
+	producer, err := rabbit.NewProducer(amqpURI, "", cfg.Queue)
+	if err != nil {
+		log.Fatalf("failed to create producer: %v", err)
 	}
-	log.Printf("published %dB OK", len(*body))
+	defer producer.Shutdown()
+
+	quit := make(chan struct{})
+	go func() {
+		sigs := make(chan os.Signal, 1)
+		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+		<-sigs
+		close(quit)
+	}()
+
+	producer.Start(quit)
 }

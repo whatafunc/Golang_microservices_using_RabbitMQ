@@ -1,4 +1,4 @@
-module github.com/OtusGolang/webinars_practical_part/29-queues
+module github.com/whatafunc/Golang_microservices_using_RabbitMQ
 
 go 1.16
 
