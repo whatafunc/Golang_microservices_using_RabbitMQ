@@ -1,20 +1,35 @@
-.PHONY: rabbit
+BIN := "./bin/calendar"
+DOCKER_IMG="calendar:develop"
 
-rabbit:
-    # http://localhost:15672/ guest:guest
-	docker run -d --name rabbit -p 15672:15672 -p 5672:5672 rabbitmq:3-management
+GIT_HASH := $(shell git log --format="%h" -n 1)
+LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%dT%H:%M:%S) -X main.gitHash=$(GIT_HASH)
 
+build:
+	go build -v -o $(BIN) -ldflags "$(LDFLAGS)" ./cmd/calendar
 
+run: build
+	$(BIN) -config ./configs/config.toml
 
-# # Create a new profile named "messaging"
-# colima start messaging --cpu 2 --memory 4 --disk 20
+build-img:
+	docker build \
+		--build-arg=LDFLAGS="$(LDFLAGS)" \
+		-t $(DOCKER_IMG) \
+		-f build/Dockerfile .
 
-# # Tell your docker CLI to use the "messaging" VM
-# colima ssh messaging
-# # Once inside the VM, you can run your docker command, but it's easier to do from the host:
+run-img: build-img
+	docker run $(DOCKER_IMG)
 
-# # Or, set the environment to use the "messaging" profile
-# export DOCKER_HOST="unix://${HOME}/.colima/messaging/docker.sock"
+version: build
+	$(BIN) version
 
-# # Then run your container in the isolated "messaging" VM
-# docker run -d --name rabbit -p 15672:15672 -p 5672:5672 rabbitmq:3-management
+test:
+#	go test -race ./internal/... ./pkg/...
+	go test -race ./internal/...
+
+install-lint-deps:
+	(which golangci-lint > /dev/null) || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.64.8
+
+lint: install-lint-deps
+	golangci-lint run ./...
+
+.PHONY: build run build-img run-img version test lint

@@ -8,7 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/whatafunc/Golang_microservices_using_RabbitMQ/internal/rabbit"
+	"github.com/whatafunc/Golang_Otus_Labs/hw12_13_14_15_16_calendar/internal/rabbit"
 )
 
 var configFile string

@@ -1,6 +1,6 @@
 user: "guest"
-password: "admin"
-host: "localhost"         #AMQP URI host
+password: "guest"
+host: "192.168.1.71"         #AMQP URI host
 port: "5672"
 exchange: "test-exchange" #Durable, non-auto-deleted AMQP exchange name
 exchange-type: "direct"   #Exchange type - direct|fanout|topic|x-custom")

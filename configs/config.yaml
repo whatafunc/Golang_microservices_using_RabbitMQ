@@ -1,0 +1,15 @@
+logger:
+  level: "info" # info or error
+
+http:
+  listen: ":8081"
+
+grpc:
+  listenGrpc: ":50051"
+
+storage:
+  type: "postgres" # "memory"  or  "postgres"
+  postgres:
+    dsn: "host=192.168.1.71 port=5433 user=otus_user1 password=otus_password1 dbname=events sslmode=disable" #migration = "migrations"
+
+migrationsPath: "./migrations"

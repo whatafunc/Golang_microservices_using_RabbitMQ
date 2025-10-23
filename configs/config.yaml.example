@@ -1,0 +1,11 @@
+logger:
+  level: "info" # info or error
+
+http:
+  listen: ":8080"
+
+storage:
+  type: "memory" # or "memory" or "postgres"
+  postgres:
+    dsn: "host=localhost user=postgres1 password=secret123 dbname=calendar01 sslmode=disable"
+migrationsPath: "migrations" # should be in the root of the app

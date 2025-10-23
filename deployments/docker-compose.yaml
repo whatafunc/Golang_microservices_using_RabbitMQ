@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+#   app:
+#     build:
+#       context: .
+#       dockerfile: Dockerfile
+#     ports:
+#       - "8050:8080"
+#     container_name: books-host
+#     environment:
+#       - TZ=Europe/Moscow  # Fixed timezone format
+#       - HTTP_ADDRESS=0.0.0.0:8080
+# #      - POSTGRES_DSN=host=postgres port=5432 user=otus_user password=otus_password dbname=books sslmode=disable  # Connect to postgres service
+#     depends_on:
+#       - postgres
+# #        condition: service_healthy
+#     stdin_open: true     # Keep STDIN open
+#     tty: true           # Allocate pseudo-TTY
+#     entrypoint: ["/bin/sh", "-c"]
+#     command: ["tail", "-f", "/dev/null"]  # Keep container running    command: ["/bin/bash"]  # or /bin/sh
+
+  postgres:
+    image: postgres:14
+    container_name: events-postgres
+    environment:
+      POSTGRES_DB: events
+      POSTGRES_USER: otus_user1
+      POSTGRES_PASSWORD: otus_password1
+      # Remove POSTGRES_SUPERUSER - not valid environment variables
+    volumes:
+      - pg_events_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U otus_user1 -d events"]  # Fixed user/db name
+      interval: 10s
+      timeout: 15s
+      retries: 5
+
+volumes:
+  pg_events_data:
