@@ -32,6 +32,7 @@ require (
 	github.com/jackc/pgx/v4 v4.18.3
 	github.com/mfridman/interpolate v0.0.2 // indirect
 	github.com/pressly/goose/v3 v3.24.3
+	github.com/robfig/cron/v3 v3.0.1
 	github.com/sethvargo/go-retry v0.3.0 // indirect
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/multierr v1.11.0 // indirect

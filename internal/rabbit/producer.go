@@ -9,7 +9,9 @@ import (
 
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/whatafunc/Golang_Otus_Labs/hw12_13_14_15_16_calendar/internal/app"
+
 	// "github.com/whatafunc/Golang_Otus_Labs/hw12_13_14_15_16_calendar/internal/logger"
+	"github.com/robfig/cron/v3"
 )
 
 // Event represents the structure of an event.
@@ -65,29 +67,33 @@ func (p *Producer) Publish(body []byte) error {
 }
 
 func (p *Producer) Start(quit <-chan struct{}) {
-	i := 0
-	for {
-		select {
-		case <-quit:
-			log.Println("producer shutting down...")
-			return
-		default:
-			// msg := []byte("message " + time.Now().Format(time.RFC3339))
-			// if err := p.Publish(msg); err != nil {
-			// 	log.Printf("failed to publish: %v", err)
-			// 	return
-			// }
-			// log.Printf("sent: %s", msg)
-			if err := p.ListEventsDay(i); err != nil {
-				log.Printf("failed to publish: %v", err)
-				return
-			}
-			i++
-			//logg.Info(fmt.Sprintf("✅ Producer sent day events batch %d", i))
-			time.Sleep(time.Second)
+	// Create a new cron scheduler
+	c := cron.New() // supports seconds if you want "every 10s" intervals
 
+	// Schedule hourly job (configurable interval would be better)
+	_, err := c.AddFunc("@every 1h", func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		log.Println("[Producer] Checking for events to publish...")
+
+		if err := p.ListEventsDay(ctx); err != nil {
+			log.Printf("[Producer] failed to publish daily events: %v", err)
 		}
+	})
+	if err != nil {
+		log.Fatalf("[Producer] Failed to schedule cron: %v", err)
 	}
+
+	c.Start()
+	log.Println("[Producer] Cron started: publishing every 1h")
+
+	// Block until quit signal is received
+	<-quit
+
+	log.Println("[Producer] Shutdown signal received, stopping cron...")
+	c.Stop()
+	log.Println("[Producer] Cron stopped gracefully.")
 }
 
 func (p *Producer) Shutdown() error {
@@ -98,39 +104,32 @@ func (p *Producer) Shutdown() error {
 }
 
 // ListEventsDay generates and publishes event data for the day.
-func (p *Producer) ListEventsDay(i int) error {
-	// Example: Generate a list of events for the day
-	// events := []Event{
-	// 	{ID: 1, Name: "Event 1", Timestamp: time.Now()},
-	// 	{ID: 2, Name: "Event 2", Timestamp: time.Now().Add(1 * time.Hour)},
-	// }
-	ctx := context.TODO()
+func (p *Producer) ListEventsDay(ctx context.Context) error {
 	events, err := p.app.ListEvents(ctx, app.PeriodDay)
 	if err != nil {
-		// p.app.logger.Errorf("failed to list day events: %v", err)
 		log.Printf("failed to list day events: %v", err)
 		return fmt.Errorf("failed to list day events: %w", err)
 	}
-	log.Printf("checked list day events: %v", events)
+
+	log.Printf("[Producer] found %d events", len(events))
 	for _, event := range events {
-		// Serialize the event to JSON
-		// if err != nil {
-		// 	return err
-		// }
+		if event.Start.Hour() != time.Now().Hour() {
+			log.Printf("[Producer] skipped old event: Title=%s Start=%s", event.Title, event.Start)
+			continue
+		}
+
 		msg, err := json.Marshal(event)
 		if err != nil {
-			log.Printf("failed to serialize event: %v", err)
+			log.Printf("[Producer] failed to serialize event: %v", err)
 			continue
 		}
 
-		// Publish the message
 		if err := p.Publish(msg); err != nil {
-			log.Printf("failed to publish event(%d): %v", i, err)
+			log.Printf("[Producer] failed to publish: %v", err)
 			continue
 		}
 
-		log.Printf("sent event(%d): %s", i, msg)
-		time.Sleep(time.Second) // Simulate delay between messages
+		log.Printf("[Producer] sent: %s", msg)
 	}
 	return nil
 }
