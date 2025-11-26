@@ -9,6 +9,7 @@ import (
 
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/whatafunc/Golang_Otus_Labs/hw12_13_14_15_16_calendar/internal/app"
+	"github.com/whatafunc/Golang_Otus_Labs/hw12_13_14_15_16_calendar/internal/storage"
 
 	// "github.com/whatafunc/Golang_Otus_Labs/hw12_13_14_15_16_calendar/internal/logger"
 	"github.com/robfig/cron/v3"
@@ -67,11 +68,11 @@ func (p *Producer) Publish(body []byte) error {
 }
 
 func (p *Producer) Start(quit <-chan struct{}) {
-	// Create a new cron scheduler
+	// Create a new cron schedulers
 	c := cron.New() // supports seconds if you want "every 10s" intervals
 
-	// Schedule hourly job (configurable interval would be better)
-	_, err := c.AddFunc("@every 1h", func() {
+	// 1. Schedule hourly job (configurable interval would be better)
+	_, err := c.AddFunc("@every 1m", func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 
@@ -83,6 +84,21 @@ func (p *Producer) Start(quit <-chan struct{}) {
 	})
 	if err != nil {
 		log.Fatalf("[Producer] Failed to schedule cron: %v", err)
+	}
+
+	// 2. Clean old events once a day at 03:00
+	_, err = c.AddFunc("* * * * 1", func() {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+		defer cancel()
+
+		log.Println("[Producer] Running daily cleanup to remove 1 year old events...")
+
+		if err := p.CleanOldEvents(ctx); err != nil {
+			log.Printf("[Producer] failed to clean events: %v", err)
+		}
+	})
+	if err != nil {
+		log.Fatalf("[Producer] Failed to schedule cleanup cron: %v", err)
 	}
 
 	c.Start()
@@ -105,7 +121,7 @@ func (p *Producer) Shutdown() error {
 
 // ListEventsDay generates and publishes event data for the day.
 func (p *Producer) ListEventsDay(ctx context.Context) error {
-	events, err := p.app.ListEvents(ctx, app.PeriodDay)
+	events, err := p.app.ListEvents(ctx, storage.PeriodDay)
 	if err != nil {
 		log.Printf("failed to list day events: %v", err)
 		return fmt.Errorf("failed to list day events: %w", err)
@@ -130,6 +146,25 @@ func (p *Producer) ListEventsDay(ctx context.Context) error {
 		}
 
 		log.Printf("[Producer] sent: %s", msg)
+	}
+	return nil
+}
+
+func (p *Producer) CleanOldEvents(ctx context.Context) error {
+	events, err := p.app.ListEvents(ctx, storage.PeriodAll)
+	if err != nil {
+		log.Printf("failed to get all events: %v", err)
+		return fmt.Errorf("failed to get all events: %w", err)
+	}
+
+	log.Printf("[Producer] found %d events", len(events))
+	for _, event := range events {
+
+		// Delete Event if it is a year old.
+		if event.Start.Before(time.Now().AddDate(-1, 0, 0)) {
+			log.Printf("[Producer] deleting old event: Title=%s Start=%s", event.Title, event.Start)
+			p.app.DeleteEvent(ctx, event.ID)
+		}
 	}
 	return nil
 }

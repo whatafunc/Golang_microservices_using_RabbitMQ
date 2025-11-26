@@ -18,8 +18,6 @@ type App struct {
 	store storageInterface
 }
 
-const PeriodDay = "day"
-
 // NewWithConfig creates and returns a new App instance based on the config.
 func NewWithConfig(cfg config.Config, log *logger.Logger) *App {
 	var store storageInterface
