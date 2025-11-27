@@ -38,5 +38,26 @@ services:
       timeout: 15s
       retries: 5
 
+  rabbitmq:
+    image: rabbitmq:3-management-alpine  # Uses the smaller Alpine-based image with management plugin pre-installed
+    container_name: my_rabbitmq
+    hostname: my-rabbitmq-host
+    restart: unless-stopped
+    ports:
+      - "5672:5672"   # AMQP protocol port for clients
+      - "15672:15672" # Management UI HTTP port
+    environment:
+      # Pre-define the default guest user (optional, but explicit)
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+      # --- THE CRUCIAL PART: Create your custom admin user ---
+      - RABBITMQ_DEFAULT_VHOST=/
+      - RABBITMQ_ADMIN_USER=myadmin
+      - RABBITMQ_ADMIN_PASSWORD=mysecretpassword
+    volumes:
+      # Optional: Persist data between container restarts
+      - rabbitmq_data:/var/lib/rabbitmq      
+
 volumes:
+  rabbitmq_data:
   pg_events_data:

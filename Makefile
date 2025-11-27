@@ -17,7 +17,7 @@ build-img:
 		-f build/Dockerfile .
 
 run-img: build-img
-	docker run $(DOCKER_IMG)
+	docker run -p 8081:8081 -p 50051:50051 $(DOCKER_IMG)
 
 version: build
 	$(BIN) version
