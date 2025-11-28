@@ -11,14 +11,14 @@ echo "=== Testing Calendar API ==="
 echo
 # Test 1: Create an event
 echo "1. Creating an event..."
-curl -X POST http://localhost:8081/api/create \
+curl -X POST http://localhost:8888/api/create \
   -H "Content-Type: application/json" \
   -d '{
      "event": {
        "title": "today 24",
        "description": "This is a test event",
-       "start": "2025-11-24T18:00:00Z",
-       "end": "2025-11-24T18:19:00Z",
+       "start": "2025-11-27T18:00:00Z",
+       "end": "2025-11-27T18:19:00Z",
        "allDay": false,
        "clinic": "Test Clinic 24",
        "userId": 242424,

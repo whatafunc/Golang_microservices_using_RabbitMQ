@@ -48,3 +48,7 @@ git push -u origin main```
    * `.PHONY`: Declares all the above commands as phony targets, meaning they are not actual files.
 
   In essence, this Makefile streamlines common development tasks for this Go project, from building and running the application (both directly and in Docker) to testing and linting. 
+
+  The docker driver is used by Colima as Docker Desktop is way to heavy for old system.
+  Best working Colima for my desktop host:
+  ```colima start --arch x86_64 --cpu 2 --memory 4 --disk 30 --mount-type sshfs --runtime docker --dns 8.8.8.8 --dns 1.1.1.1```
