@@ -21,12 +21,12 @@ jobs:
   #       run: echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
 
   #     - name: Set up Go
-  #       uses: actions/setup-go@v6.0.0
+  #       uses: actions/setup-go@v6.1.0
   #       with:
   #         go-version: ${{ env.GOLANG_VERSION }}
 
   #     - name: Check out code
-  #       uses: actions/checkout@v5.0.0
+  #       uses: actions/checkout@v6.0.0
 
   #     - name: Linters
   #       uses: golangci/golangci-lint-action@v3
@@ -59,12 +59,12 @@ jobs:
         run: echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
 
       - name: Set up Go
-        uses: actions/setup-go@v6.0.0
+        uses: actions/setup-go@v6.1.0
         with:
           go-version: ${{ env.GOLANG_VERSION }}
 
       - name: Check out code
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v6.0.0
 
       - name: Wait for Postgres to be ready
         run: |
@@ -94,12 +94,12 @@ jobs:
   #   if: contains(github.ref, 'calendar')
   #   steps:
   #     - name: Set up Go
-  #       uses: actions/setup-go@v6.0.0
+  #       uses: actions/setup-go@v6.1.0
   #       with:
   #         go-version: ${{ env.GOLANG_VERSION }}
 
   #     - name: Check out code
-  #       uses: actions/checkout@v5.0.0
+  #       uses: actions/checkout@v6.0.0
 
   #     - name: make lint
   #       run: make lint
